@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "mobicore:block/alloy_smelter_front",
+    "side": "mobicore:block/alloy_smelter_side",
+    "top": "mobicore:block/alloy_smelter_top"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "F": {
+      "item": "minecraft:furnace"
+    },
+    "S": {
+      "item": "minecraft:smooth_stone"
+    }
+  },
+  "pattern": [
+    "CCC",
+    "CFC",
+    "SSS"
+  ],
+  "result": {
+    "item": "mobicore:alloy_smelter"
+  },
+  "show_notification": true
+}

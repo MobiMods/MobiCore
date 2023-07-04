@@ -1,0 +1,14 @@
+{
+  "type": "mobicore:alloy_smelter",
+  "ingredients": [
+    {
+      "item": "minecraft:redstone_block"
+    },
+    {
+      "item": "mobicore:steel_ingot"
+    }
+  ],
+  "output": {
+    "item": "mobicore:hardened_redstone"
+  }
+}
