@@ -6,21 +6,17 @@ import com.github.agentallandev.mobimod.mobicore.screen.AlloySmelterMenu;
 import com.github.agentallandev.mobimod.mobicore.util.ContentRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.tags.ItemTags;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -34,11 +30,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
-import java.util.Random;
 
 public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider {
-    private static int progress = 0;
-    private static int maxProgress = 76;
+    protected final ContainerData data;
+    private int progress = 0;
+    private int maxProgress = 76;
 
     private final ItemStackHandler itemHandler = new ItemStackHandler(4) {
         @Override
@@ -51,6 +47,29 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
 
     public AlloySmelterBlockEntity(BlockPos pWorldPosition, BlockState pBlockState) {
         super(ContentRegistry.ALLOY_SMELTER_ENTITY.get(), pWorldPosition, pBlockState);
+        this.data = new ContainerData() {
+            @Override
+            public int get(int pIndex) {
+                return switch (pIndex) {
+                    case 0 -> AlloySmelterBlockEntity.this.progress;
+                    case 1 -> AlloySmelterBlockEntity.this.maxProgress;
+                    default -> 0;
+                };
+            }
+
+            @Override
+            public void set(int pIndex, int pValue) {
+                switch (pIndex) {
+                    case 0 -> AlloySmelterBlockEntity.this.progress = pValue;
+                    case 1 -> AlloySmelterBlockEntity.this.maxProgress = pValue;
+                }
+            }
+
+            @Override
+            public int getCount() {
+                return 2;
+            }
+        };
     }
 
     @Override
@@ -61,7 +80,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int pContainerId, Inventory pInventory, Player pPlayer) {
-        return new AlloySmelterMenu(pContainerId, pInventory, this);
+        return new AlloySmelterMenu(pContainerId, pInventory, this, this.data);
     }
 
     @Nonnull
@@ -110,58 +129,77 @@ public class AlloySmelterBlockEntity extends BlockEntity implements MenuProvider
     }
 
 
-    public static void tick(Level pLevel, BlockPos pPos, BlockState pState, AlloySmelterBlockEntity pBlockEntity) {
-        if(hasRecipe(pBlockEntity) && hasNotReachedStackLimit(pBlockEntity)){
-            progress++;
+    public void tick(Level level, BlockPos pPos, BlockState pState) {
+        if (isOutputSlotEmptyOrReceivable() && hasRecipe()) {
+            increaseCraftingProcess();
+            setChanged(level, pPos, pState);
 
-            if(progress >= maxProgress){
-                craftItem(pBlockEntity);
-                setChanged(pLevel, pPos, pState);
+            if (hasProgressFinished()) {
+                craftItem();
+                resetProgress();
             }
-        }
-
-        else{
-            progress = 0;
+        } else {
+            resetProgress();
         }
     }
 
-    private static void craftItem(AlloySmelterBlockEntity entity) {
-        Level level = entity.level;
-        SimpleContainer inventory = new SimpleContainer(entity.itemHandler.getSlots());
-        boolean hasCoalInFirstSlot = entity.itemHandler.getStackInSlot(0).is(ItemTags.COALS);
-        Optional<AlloySmelterRecipe> recipe = level.getRecipeManager().getRecipeFor(AlloySmelterRecipe.Type.INSTANCE, inventory, level);
-        if(hasRecipe(entity)) {
-            entity.itemHandler.extractItem(0, 1, false);
-            entity.itemHandler.extractItem(1, 1, false);
-            entity.itemHandler.extractItem(2, 1, false);
+    private void craftItem() {
+        Optional<AlloySmelterRecipe> recipe = getCurrentRecipe();
 
-            entity.itemHandler.setStackInSlot(3, new ItemStack(recipe.get().getResultItem(RegistryAccess.EMPTY).getItem(),
-                    entity.itemHandler.getStackInSlot(3).getCount() + recipe.get().getResultItem(RegistryAccess.EMPTY).getCount()));
+        this.itemHandler.extractItem(0, 1, false);
+        this.itemHandler.extractItem(1, 1, false);
+        this.itemHandler.extractItem(2, 1, false);
 
-            progress = 0;
-        }
+        ItemStack resultItem = recipe.get().getResultItem(getLevel().registryAccess());
+        this.itemHandler.setStackInSlot(3, new ItemStack(resultItem.getItem(), this.itemHandler.getStackInSlot(3).getCount() + resultItem.getCount()));
+        resetProgress();
     }
 
-    private static boolean hasRecipe(AlloySmelterBlockEntity entity) {
-        Level level = entity.level;
-        SimpleContainer inventory = new SimpleContainer(entity.itemHandler.getSlots());
+    private void resetProgress() {
+        this.progress = 0;
+    }
 
-        boolean hasCoalInFirstSlot = entity.itemHandler.getStackInSlot(0).is(ItemTags.COALS);
+    private boolean hasProgressFinished() {
+        return this.progress >= this.maxProgress;
+    }
 
-        Optional<AlloySmelterRecipe> recipe = level.getRecipeManager().getRecipeFor(AlloySmelterRecipe.Type.INSTANCE, inventory, level);
+    private void increaseCraftingProcess() {
+        this.progress++;
+    }
 
-        return hasCoalInFirstSlot && recipe.isPresent();
+    private boolean hasRecipe() {
+        Optional<AlloySmelterRecipe> recipe = getCurrentRecipe();
+
+        if(recipe.isEmpty())
+            return false;
+
+        ItemStack resultItem = recipe.get().getResultItem(getLevel().registryAccess());
+        return canInsertAmountIntoOutputSlot(resultItem.getCount()) && canInsertItemIntoOutputSlot(resultItem.getItem());
+    }
+
+    private Optional<AlloySmelterRecipe> getCurrentRecipe() {
+        SimpleContainer inventory = new SimpleContainer(this.itemHandler.getSlots());
+        for(int i = 0; i < this.itemHandler.getSlots(); i++){
+            inventory.setItem(i, this.itemHandler.getStackInSlot(i));
+        }
+        return this.level.getRecipeManager().getRecipeFor(AlloySmelterRecipe.Type.INSTANCE, inventory, level);
     }
 
     private static boolean hasNotReachedStackLimit(AlloySmelterBlockEntity entity) {
         return entity.itemHandler.getStackInSlot(3).getCount() < entity.itemHandler.getStackInSlot(3).getMaxStackSize() || entity.itemHandler.getStackInSlot(3).isEmpty();
     }
 
-    public int getProgress(){
-        return progress;
+    private boolean canInsertItemIntoOutputSlot(Item item) {
+        return this.itemHandler.getStackInSlot(3).isEmpty() || this.itemHandler.getStackInSlot(3).is(item);
     }
 
-    public int getMaxProgress(){
-        return maxProgress;
+    private boolean canInsertAmountIntoOutputSlot(int count) {
+        return this.itemHandler.getStackInSlot(3).getMaxStackSize() >=
+                this.itemHandler.getStackInSlot(3).getCount() + count;
+    }
+
+    private boolean isOutputSlotEmptyOrReceivable() {
+        return this.itemHandler.getStackInSlot(3).isEmpty() ||
+                this.itemHandler.getStackInSlot(3).getCount() < this.itemHandler.getStackInSlot(3).getMaxStackSize();
     }
 }
