@@ -16,7 +16,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.Material;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.network.IContainerFactory;
@@ -33,10 +32,10 @@ public class ContentRegistry {
     public static DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MobiCore.MODID);
 
     public static final RegistryObject<Item> STEEL_INGOT = ITEMS.register("steel_ingot", ()-> new Item(new Item.Properties()));
-    public static final RegistryObject<Block> STEEL_BLOCK = BLOCKS.register("steel_block", ()-> new Block(BlockBehaviour.Properties.of(Material.METAL)));
+    public static final RegistryObject<Block> STEEL_BLOCK = BLOCKS.register("steel_block", ()-> new Block(BlockBehaviour.Properties.of()));
     public static final RegistryObject<Item> STEEL_BLOCK_ITEM = ITEMS.register("steel_block", ()-> new BlockItem(STEEL_BLOCK.get(), new Item.Properties()));
 
-    public static final RegistryObject<Block> ALLOY_SMELTER = BLOCKS.register("alloy_smelter", ()-> new AlloySmelterBlock(BlockBehaviour.Properties.of(Material.METAL)));
+    public static final RegistryObject<Block> ALLOY_SMELTER = BLOCKS.register("alloy_smelter", ()-> new AlloySmelterBlock(BlockBehaviour.Properties.of()));
     public static final RegistryObject<Item> ALLOY_SMELTER_ITEM = ITEMS.register("alloy_smelter", ()-> new BlockItem(ALLOY_SMELTER.get(), new Item.Properties()));
 
 

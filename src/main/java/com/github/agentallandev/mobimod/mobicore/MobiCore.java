@@ -11,10 +11,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.Material;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.CreativeModeTabEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -50,9 +49,9 @@ public class MobiCore
 
     private void commonSetup(final FMLCommonSetupEvent event){}
 
-    private void addCreative(CreativeModeTabEvent.BuildContents event)
+    private void addCreative(BuildCreativeModeTabContentsEvent event)
     {
-        if (event.getTab() == CreativeModeTabs.COMBAT){
+        if (event.getTabKey() == CreativeModeTabs.COMBAT){
             event.accept(ContentRegistry.STEEL_HELMET);
             event.accept(ContentRegistry.STEEL_CHESTPLATE);
             event.accept(ContentRegistry.STEEL_LEGGINGS);
@@ -79,7 +78,7 @@ public class MobiCore
             event.accept(ContentRegistry.HARDENED_REDSTONE_BOOTS);
             event.accept(ContentRegistry.HARDENED_REDSTONE_SWORD);
         }
-        if(event.getTab() == CreativeModeTabs.TOOLS_AND_UTILITIES){
+        if(event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES){
             event.accept(ContentRegistry.STEEL_SHOVEL);
             event.accept(ContentRegistry.STEEL_AXE);
             event.accept(ContentRegistry.STEEL_PICKAXE);
@@ -101,14 +100,14 @@ public class MobiCore
             event.accept(ContentRegistry.HARDENED_REDSTONE_PICKAXE);
             event.accept(ContentRegistry.HARDENED_REDSTONE_HOE);
         }
-        if(event.getTab() == CreativeModeTabs.INGREDIENTS){
+        if(event.getTabKey() == CreativeModeTabs.INGREDIENTS){
             event.accept(ContentRegistry.HARDENED_REDSTONE);
             event.accept(ContentRegistry.STEEL_INGOT);
         }
-        if(event.getTab() == CreativeModeTabs.NATURAL_BLOCKS){
+        if(event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS){
             event.accept(ContentRegistry.STEEL_BLOCK);
         }
-        if(event.getTab() == CreativeModeTabs.FUNCTIONAL_BLOCKS){
+        if(event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS){
             event.accept(ContentRegistry.ALLOY_SMELTER);
         }
     }

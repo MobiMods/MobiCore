@@ -42,7 +42,7 @@ public class AlloySmelterRecipe implements Recipe<SimpleContainer> {
 
     @Override
     public ItemStack assemble(SimpleContainer pContainer, RegistryAccess p_267165_) {
-        return output;
+        return output.copy();
     }
 
     @Override
@@ -95,7 +95,7 @@ public class AlloySmelterRecipe implements Recipe<SimpleContainer> {
         }
 
         @Override
-        public @Nullable AlloySmelterRecipe fromNetwork(ResourceLocation pRecipeId, FriendlyByteBuf pBuffer) {
+        public AlloySmelterRecipe fromNetwork(ResourceLocation pRecipeId, FriendlyByteBuf pBuffer) {
             NonNullList<Ingredient> inputs = NonNullList.withSize(pBuffer.readInt(), Ingredient.EMPTY);
 
             for(int i = 0; i < inputs.size(); i++){
